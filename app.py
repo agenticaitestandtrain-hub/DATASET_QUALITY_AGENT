@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-
+from model_agent import run_ml_pipeline
 from analyzer import analyze_dataset
 from analyzer import dataset_score
 from analyzer import recommendations
@@ -8,7 +8,8 @@ from analyzer import dataset_description
 from analyzer import detect_outliers
 from analyzer import suggest_ml_task
 from analyzer import generate_report
-
+from preprocessing_agent import preprocess_dataset
+from model_agent import run_model
 from utils import plot_missing
 from utils import correlation_heatmap
 
@@ -132,8 +133,16 @@ if uploaded_file:
 
     st.subheader("ML Task Suggestion")
     st.write(ml_task)
+    st.subheader("Automated ML Pipeline")
 
+    df_clean = preprocess_dataset(df)
 
+    st.write("Preprocessed dataset saved as preprocessed_dataset.csv")
+
+    model_name, model_score = run_model(df_clean, ml_task)
+
+    st.write("Model Used:", model_name)
+    st.write("Model Score:", model_score)
     # -----------------------------
     # GENERATE REPORT + TELEGRAM ALERT
     # -----------------------------
