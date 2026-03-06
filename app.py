@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from model_agent import run_ml_pipeline
+
 from analyzer import analyze_dataset
 from analyzer import dataset_score
 from analyzer import recommendations
