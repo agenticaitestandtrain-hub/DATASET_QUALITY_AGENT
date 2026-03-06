@@ -115,7 +115,7 @@ if uploaded_file:
     st.divider()
 
 
-    # PREPROCESSING + MODEL PIPELINE
+    # PREPROCESSING
     st.subheader("Automated ML Pipeline")
 
     df_clean = preprocess_dataset(df)
@@ -144,11 +144,18 @@ if uploaded_file:
 
         st.subheader("Model Comparison")
 
-        for model, score in results.items():
-            st.write(f"{model} → {score}")
+        comparison_df = pd.DataFrame(
+            results.items(),
+            columns=["Model", "Score"]
+        )
+
+        st.table(comparison_df)
+
+        best_score = results[best_model]
 
         st.subheader("Best Model Selected")
-        st.write(best_model)
+
+        st.write(f"{best_model} → {best_score}")
 
     except Exception as e:
 
