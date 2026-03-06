@@ -152,15 +152,21 @@ if uploaded_file:
     st.write("Preprocessed dataset saved as **preprocessed_dataset.csv**")
 
 
-    # download button
-    with open("preprocessed_dataset.csv", "rb") as f:
-        st.download_button(
+    import os
+
+    file_path = "preprocessed_dataset.csv"
+
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            st.download_button(
             label="Download Preprocessed Dataset",
             data=f,
             file_name="preprocessed_dataset.csv",
             mime="text/csv"
         )
 
+    else:
+        st.warning("Preprocessed dataset not available")
 
     # run ML model
     try:

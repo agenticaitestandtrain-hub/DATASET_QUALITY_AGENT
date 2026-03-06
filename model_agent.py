@@ -6,7 +6,9 @@ from sklearn.metrics import accuracy_score, r2_score
 
 def run_model(df, task):
 
-    # assume last column is target
+    if df.shape[1] < 2:
+        return "Dataset too small for ML", "-"
+
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
@@ -14,12 +16,7 @@ def run_model(df, task):
         X, y, test_size=0.2, random_state=42
     )
 
-
-    # -----------------------------
-    # CLASSIFICATION TASK
-    # -----------------------------
-
-    if "classification" in task.lower():
+    if task and "classification" in task.lower():
 
         models = {
             "RandomForestClassifier": RandomForestClassifier(),
@@ -44,11 +41,7 @@ def run_model(df, task):
         return best_model, round(best_score, 4)
 
 
-    # -----------------------------
-    # REGRESSION TASK
-    # -----------------------------
-
-    elif "regression" in task.lower():
+    elif task and "regression" in task.lower():
 
         models = {
             "RandomForestRegressor": RandomForestRegressor(),
@@ -72,11 +65,5 @@ def run_model(df, task):
 
         return best_model, round(best_score, 4)
 
-
-    # -----------------------------
-    # UNKNOWN TASK
-    # -----------------------------
-
     else:
-
-        return "No suitable ML task detected", "-"
+        return "Unsupported ML Task", "-"
