@@ -1,9 +1,12 @@
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.metrics import accuracy_score, r2_score
 
 
 def run_model(df, task):
 
+    # assume last column is target
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
@@ -11,21 +14,69 @@ def run_model(df, task):
         X, y, test_size=0.2, random_state=42
     )
 
-    if task == "classification":
 
-        model = RandomForestClassifier()
-        model.fit(X_train, y_train)
+    # -----------------------------
+    # CLASSIFICATION TASK
+    # -----------------------------
 
-        score = model.score(X_test, y_test)
+    if "classification" in task.lower():
 
-        return "RandomForestClassifier", score
+        models = {
+            "RandomForestClassifier": RandomForestClassifier(),
+            "LogisticRegression": LogisticRegression(max_iter=1000)
+        }
+
+        best_model = None
+        best_score = 0
+
+        for name, model in models.items():
+
+            model.fit(X_train, y_train)
+
+            preds = model.predict(X_test)
+
+            score = accuracy_score(y_test, preds)
+
+            if score > best_score:
+                best_score = score
+                best_model = name
+
+        return best_model, round(best_score, 4)
 
 
-    elif task == "regression":
+    # -----------------------------
+    # REGRESSION TASK
+    # -----------------------------
 
-        model = RandomForestRegressor()
-        model.fit(X_train, y_train)
+    elif "regression" in task.lower():
 
-        score = model.score(X_test, y_test)
+        models = {
+            "RandomForestRegressor": RandomForestRegressor(),
+            "LinearRegression": LinearRegression()
+        }
 
-        return "RandomForestRegressor", score
+        best_model = None
+        best_score = -999
+
+        for name, model in models.items():
+
+            model.fit(X_train, y_train)
+
+            preds = model.predict(X_test)
+
+            score = r2_score(y_test, preds)
+
+            if score > best_score:
+                best_score = score
+                best_model = name
+
+        return best_model, round(best_score, 4)
+
+
+    # -----------------------------
+    # UNKNOWN TASK
+    # -----------------------------
+
+    else:
+
+        return "No suitable ML task detected", "-"

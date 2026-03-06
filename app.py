@@ -8,8 +8,10 @@ from analyzer import dataset_description
 from analyzer import detect_outliers
 from analyzer import suggest_ml_task
 from analyzer import generate_report
+
 from preprocessing_agent import preprocess_dataset
 from model_agent import run_model
+
 from utils import plot_missing
 from utils import correlation_heatmap
 
@@ -29,6 +31,7 @@ if uploaded_file:
 
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
+
 
     # -----------------------------
     # DATASET ANALYSIS
@@ -133,16 +136,46 @@ if uploaded_file:
 
     st.subheader("ML Task Suggestion")
     st.write(ml_task)
+
+
+    st.divider()
+
+
+    # -----------------------------
+    # AUTOMATED ML PIPELINE
+    # -----------------------------
+
     st.subheader("Automated ML Pipeline")
 
     df_clean = preprocess_dataset(df)
 
-    st.write("Preprocessed dataset saved as preprocessed_dataset.csv")
+    st.write("Preprocessed dataset saved as **preprocessed_dataset.csv**")
 
-    model_name, model_score = run_model(df_clean, ml_task)
 
-    st.write("Model Used:", model_name)
-    st.write("Model Score:", model_score)
+    # download button
+    with open("preprocessed_dataset.csv", "rb") as f:
+        st.download_button(
+            label="Download Preprocessed Dataset",
+            data=f,
+            file_name="preprocessed_dataset.csv",
+            mime="text/csv"
+        )
+
+
+    # run ML model
+    try:
+
+        model_name, model_score = run_model(df_clean, ml_task)
+
+        st.write("Model Used:", model_name)
+        st.write("Model Score:", model_score)
+
+    except Exception as e:
+
+        st.warning("Automatic ML pipeline could not run.")
+        st.write("Reason:", e)
+
+
     # -----------------------------
     # GENERATE REPORT + TELEGRAM ALERT
     # -----------------------------
@@ -154,5 +187,6 @@ if uploaded_file:
     try:
         send_alert(uploaded_file.name, report_file)
         st.info("Telegram alert sent successfully")
+
     except Exception as e:
         st.error(f"Telegram alert failed: {e}")
