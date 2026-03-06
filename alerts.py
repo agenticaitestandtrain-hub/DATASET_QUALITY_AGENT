@@ -4,34 +4,22 @@ import smtplib
 from email.message import EmailMessage
 
 
-def send_alert(filename, report_file):
+import requests
 
-    sender = "agenticaitestandtrain@gmail.com"
-    password = "pgvnlnlnanhogbtr"
-    receiver = "agenticaitestandtrain@gmail.com"
+def send_alert(dataset, report):
 
-    # create email object
-    msg = EmailMessage()
+    BOT_TOKEN = "8674975796:AAHqPSM2HgHHIr1OtPaKhBUx4Xl96RnZWK8"
+    CHAT_ID = "5079531217"
 
-    msg["Subject"] = "Dataset Analysis Report"
-    msg["From"] = sender
-    msg["To"] = receiver
+    message = f"⚠ Dataset Alert\nDataset: {dataset}"
 
-    msg.set_content(f"A dataset was uploaded: {filename}\nFull analysis report attached.")
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-    # attach report file
-    with open(report_file, "rb") as f:
-        file_data = f.read()
-        file_name = report_file
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": message
+    }
 
-    msg.add_attachment(
-        file_data,
-        maintype="application",
-        subtype="octet-stream",
-        filename=file_name
-    )
+    response = requests.post(url, data=payload)
 
-    # send email
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(sender, password)
-        smtp.send_message(msg)
+    return response.status_code
