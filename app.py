@@ -41,7 +41,7 @@ if uploaded_file:
     st.write("Columns:", report["columns"])
     st.write("Missing values:", report["missing_values"])
     st.write("Duplicate rows:", report["duplicate_rows"])
-    st.write("Missing value percentage:", round(report["missing_percentage"],2), "%")
+    st.write("Missing value percentage:", round(report["missing_percentage"], 2), "%")
 
     st.write("Numeric columns:", report["numeric_columns"])
     st.write("Categorical columns:", report["categorical_columns"])
@@ -135,9 +135,15 @@ if uploaded_file:
 
 
     # -----------------------------
-    # GENERATE REPORT + ALERT
+    # GENERATE REPORT + TELEGRAM ALERT
     # -----------------------------
 
     report_file = generate_report(df, report, score, tips, outs, ml_task)
 
-    send_alert(uploaded_file.name, report_file)
+    st.success("Report generated successfully")
+
+    try:
+        send_alert(uploaded_file.name, report_file)
+        st.info("Telegram alert sent successfully")
+    except Exception as e:
+        st.error(f"Telegram alert failed: {e}")
