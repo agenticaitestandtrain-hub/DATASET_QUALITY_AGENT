@@ -1,76 +1,15 @@
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.metrics import accuracy_score, r2_score
+from sklearn.metrics import r2_score, accuracy_score
 
+# Regression models
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
 
-def run_model(df, task):
-
-    if df.shape[1] < 2:
-        return "Dataset too small for ML", "-"
-
-    X = df.iloc[:, :-1]
-    y = df.iloc[:, -1]
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    if task and "classification" in task.lower():
-
-        models = {
-            "RandomForestClassifier": RandomForestClassifier(),
-            "LogisticRegression": LogisticRegression(max_iter=1000)
-        }
-
-        best_model = None
-        best_score = 0
-
-        for name, model in models.items():
-
-            model.fit(X_train, y_train)
-
-            preds = model.predict(X_test)
-
-            score = accuracy_score(y_test, preds)
-
-            if score > best_score:
-                best_score = score
-                best_model = name
-
-        return best_model, round(best_score, 4)
-
-
-    elif task and "regression" in task.lower():
-
-        models = {
-            "RandomForestRegressor": RandomForestRegressor(),
-            "LinearRegression": LinearRegression()
-        }
-
-        best_model = None
-        best_score = -999
-
-        for name, model in models.items():
-
-            model.fit(X_train, y_train)
-
-            preds = model.predict(X_test)
-
-            score = r2_score(y_test, preds)
-
-            if score > best_score:
-                best_score = score
-                best_model = name
-
-        return best_model, round(best_score, 4)
-
-    else:
-        return "Unsupported ML Task", "-"
-
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.metrics import accuracy_score, r2_score
+# Classification models
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 
 def run_model(df, task):
@@ -84,27 +23,57 @@ def run_model(df, task):
 
     task = str(task).lower()
 
-    if "classification" in task:
+    results = {}
 
-        model = RandomForestClassifier()
+    # -----------------------------
+    # REGRESSION
+    # -----------------------------
 
-        model.fit(X_train, y_train)
+    if "regression" in task:
 
-        preds = model.predict(X_test)
+        models = {
 
-        score = accuracy_score(y_test, preds)
+            "LinearRegression": LinearRegression(),
+            "DecisionTreeRegressor": DecisionTreeRegressor(),
+            "RandomForestRegressor": RandomForestRegressor()
 
-        return "RandomForestClassifier", score
+        }
 
+        for name, model in models.items():
 
-    elif "regression" in task:
+            model.fit(X_train, y_train)
 
-        model = RandomForestRegressor()
+            preds = model.predict(X_test)
 
-        model.fit(X_train, y_train)
+            score = r2_score(y_test, preds)
 
-        preds = model.predict(X_test)
+            results[name] = round(score, 4)
 
-        score = r2_score(y_test, preds)
+    # -----------------------------
+    # CLASSIFICATION
+    # -----------------------------
 
-        return "RandomForestRegressor", score
+    elif "classification" in task:
+
+        models = {
+
+            "LogisticRegression": LogisticRegression(max_iter=1000),
+            "DecisionTreeClassifier": DecisionTreeClassifier(),
+            "RandomForestClassifier": RandomForestClassifier()
+
+        }
+
+        for name, model in models.items():
+
+            model.fit(X_train, y_train)
+
+            preds = model.predict(X_test)
+
+            score = accuracy_score(y_test, preds)
+
+            results[name] = round(score, 4)
+
+    # Select best model
+    best_model = max(results, key=results.get)
+
+    return best_model, results

@@ -34,10 +34,7 @@ if uploaded_file:
     st.dataframe(df.head())
 
 
-    # -----------------------------
     # DATASET ANALYSIS
-    # -----------------------------
-
     report = analyze_dataset(df)
 
     st.subheader("Dataset Report")
@@ -52,30 +49,21 @@ if uploaded_file:
     st.write("Categorical columns:", report["categorical_columns"])
 
 
-    # -----------------------------
     # VISUALIZATION
-    # -----------------------------
-
     st.subheader("Missing Value Visualization")
 
     fig = plot_missing(df)
     st.pyplot(fig)
 
 
-    # -----------------------------
-    # QUALITY SCORE
-    # -----------------------------
-
+    # DATASET QUALITY SCORE
     score = dataset_score(df)
 
     st.subheader("Dataset Quality Score")
     st.metric("Quality Score", f"{round(score,2)}/100")
 
 
-    # -----------------------------
-    # RECOMMENDATIONS
-    # -----------------------------
-
+    # AI RECOMMENDATIONS
     tips = recommendations(df)
 
     st.subheader("AI Recommendations")
@@ -84,10 +72,7 @@ if uploaded_file:
         st.write("•", tip)
 
 
-    # -----------------------------
     # DATASET UNDERSTANDING
-    # -----------------------------
-
     desc = dataset_description(df)
 
     st.subheader("Dataset Understanding Agent")
@@ -96,10 +81,7 @@ if uploaded_file:
         st.write("•", d)
 
 
-    # -----------------------------
     # CORRELATION ANALYSIS
-    # -----------------------------
-
     st.subheader("Feature Relationship Analysis")
 
     heat = correlation_heatmap(df)
@@ -110,10 +92,7 @@ if uploaded_file:
         st.write("Not enough numeric features for correlation analysis.")
 
 
-    # -----------------------------
     # OUTLIER DETECTION
-    # -----------------------------
-
     outs = detect_outliers(df)
 
     st.subheader("Outlier Detection Agent")
@@ -121,18 +100,13 @@ if uploaded_file:
     if len(outs) == 0:
         st.write("No major outliers detected.")
     else:
-
         sorted_outs = sorted(outs.items(), key=lambda x: x[1], reverse=True)
-        top_outliers = sorted_outs[:5]
 
-        for col, count in top_outliers:
+        for col, count in sorted_outs[:5]:
             st.write(f"{count} potential outliers detected in column: {col}")
 
 
-    # -----------------------------
     # ML TASK SUGGESTION
-    # -----------------------------
-
     ml_task = suggest_ml_task(df)
 
     st.subheader("ML Task Suggestion")
@@ -141,32 +115,7 @@ if uploaded_file:
     st.divider()
 
 
-    # -----------------------------
-    # MODEL BEFORE PREPROCESSING
-    # -----------------------------
-
-    st.subheader("Model Performance Before Preprocessing")
-
-    try:
-
-        model_name_before, score_before = run_model(df, ml_task)
-
-        st.write("Model Used:", model_name_before)
-        st.write("Score Before Preprocessing:", round(score_before,4))
-
-    except Exception as e:
-
-        st.warning("Model could not run on raw dataset")
-        st.write(e)
-
-
-    st.divider()
-
-
-    # -----------------------------
-    # PREPROCESSING
-    # -----------------------------
-
+    # PREPROCESSING + MODEL PIPELINE
     st.subheader("Automated ML Pipeline")
 
     df_clean = preprocess_dataset(df)
@@ -188,43 +137,26 @@ if uploaded_file:
             )
 
 
-    # -----------------------------
-    # MODEL AFTER PREPROCESSING
-    # -----------------------------
-
+    # MODEL COMPARISON
     try:
 
-        model_name_after, score_after = run_model(df_clean, ml_task)
+        best_model, results = run_model(df_clean, ml_task)
 
-        st.write("Model Used:", model_name_after)
-        st.write("Score After Preprocessing:", round(score_after,4))
+        st.subheader("Model Comparison")
+
+        for model, score in results.items():
+            st.write(f"{model} → {score}")
+
+        st.subheader("Best Model Selected")
+        st.write(best_model)
 
     except Exception as e:
 
-        st.warning("Automatic ML pipeline could not run.")
-        st.write("Reason:", e)
+        st.warning("Model comparison failed.")
+        st.write(e)
 
 
-    # -----------------------------
-    # PERFORMANCE COMPARISON
-    # -----------------------------
-
-    try:
-
-        improvement = score_after - score_before
-
-        st.subheader("Model Improvement After Preprocessing")
-
-        st.write("Performance Improvement:", round(improvement,4))
-
-    except:
-        pass
-
-
-    # -----------------------------
-    # REPORT + ALERT
-    # -----------------------------
-
+    # REPORT + TELEGRAM ALERT
     report_file = generate_report(df, report, score, tips, outs, ml_task)
 
     st.success("Report generated successfully")
