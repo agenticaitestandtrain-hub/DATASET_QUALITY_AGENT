@@ -67,3 +67,44 @@ def run_model(df, task):
 
     else:
         return "Unsupported ML Task", "-"
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, r2_score
+
+
+def run_model(df, task):
+
+    X = df.iloc[:, :-1]
+    y = df.iloc[:, -1]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    task = str(task).lower()
+
+    if "classification" in task:
+
+        model = RandomForestClassifier()
+
+        model.fit(X_train, y_train)
+
+        preds = model.predict(X_test)
+
+        score = accuracy_score(y_test, preds)
+
+        return "RandomForestClassifier", score
+
+
+    elif "regression" in task:
+
+        model = RandomForestRegressor()
+
+        model.fit(X_train, y_train)
+
+        preds = model.predict(X_test)
+
+        score = r2_score(y_test, preds)
+
+        return "RandomForestRegressor", score

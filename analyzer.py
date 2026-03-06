@@ -23,13 +23,40 @@ def analyze_dataset(df):
     return report
 def dataset_score(df):
 
-    total_cells = df.shape[0] * df.shape[1]
-    missing = df.isnull().sum().sum()
-    duplicates = df.duplicated().sum()
+    score = 100
 
-    score = 100 - ((missing/total_cells)*100) - (duplicates*0.5)
+    rows, cols = df.shape
 
-    return max(score,0)
+    # Missing values penalty
+    missing_pct = df.isnull().sum().sum() / (rows * cols)
+    score -= missing_pct * 40
+
+    # Duplicate rows penalty
+    dup_pct = df.duplicated().sum() / rows
+    score -= dup_pct * 30
+
+    # Outlier penalty (numeric columns)
+    numeric_cols = df.select_dtypes(include=["int64","float64"])
+
+    outlier_count = 0
+
+    for col in numeric_cols.columns:
+
+        Q1 = numeric_cols[col].quantile(0.25)
+        Q3 = numeric_cols[col].quantile(0.75)
+
+        IQR = Q3 - Q1
+
+        lower = Q1 - 1.5 * IQR
+        upper = Q3 + 1.5 * IQR
+
+        outlier_count += ((numeric_cols[col] < lower) | (numeric_cols[col] > upper)).sum()
+
+    outlier_ratio = outlier_count / (rows * len(numeric_cols.columns) + 1)
+
+    score -= outlier_ratio * 30
+
+    return max(round(score,2),0)
 def recommendations(df):
 
     tips = []

@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 
 from analyzer import analyze_dataset
 from analyzer import dataset_score
@@ -45,7 +46,7 @@ if uploaded_file:
     st.write("Columns:", report["columns"])
     st.write("Missing values:", report["missing_values"])
     st.write("Duplicate rows:", report["duplicate_rows"])
-    st.write("Missing value percentage:", round(report["missing_percentage"], 2), "%")
+    st.write("Missing value percentage:", round(report["missing_percentage"],2), "%")
 
     st.write("Numeric columns:", report["numeric_columns"])
     st.write("Categorical columns:", report["categorical_columns"])
@@ -137,12 +138,33 @@ if uploaded_file:
     st.subheader("ML Task Suggestion")
     st.write(ml_task)
 
+    st.divider()
+
+
+    # -----------------------------
+    # MODEL BEFORE PREPROCESSING
+    # -----------------------------
+
+    st.subheader("Model Performance Before Preprocessing")
+
+    try:
+
+        model_name_before, score_before = run_model(df, ml_task)
+
+        st.write("Model Used:", model_name_before)
+        st.write("Score Before Preprocessing:", round(score_before,4))
+
+    except Exception as e:
+
+        st.warning("Model could not run on raw dataset")
+        st.write(e)
+
 
     st.divider()
 
 
     # -----------------------------
-    # AUTOMATED ML PIPELINE
+    # PREPROCESSING
     # -----------------------------
 
     st.subheader("Automated ML Pipeline")
@@ -152,29 +174,30 @@ if uploaded_file:
     st.write("Preprocessed dataset saved as **preprocessed_dataset.csv**")
 
 
-    import os
-
     file_path = "preprocessed_dataset.csv"
 
     if os.path.exists(file_path):
+
         with open(file_path, "rb") as f:
+
             st.download_button(
-            label="Download Preprocessed Dataset",
-            data=f,
-            file_name="preprocessed_dataset.csv",
-            mime="text/csv"
-        )
+                label="Download Preprocessed Dataset",
+                data=f,
+                file_name="preprocessed_dataset.csv",
+                mime="text/csv"
+            )
 
-    else:
-        st.warning("Preprocessed dataset not available")
 
-    # run ML model
+    # -----------------------------
+    # MODEL AFTER PREPROCESSING
+    # -----------------------------
+
     try:
 
-        model_name, model_score = run_model(df_clean, ml_task)
+        model_name_after, score_after = run_model(df_clean, ml_task)
 
-        st.write("Model Used:", model_name)
-        st.write("Model Score:", model_score)
+        st.write("Model Used:", model_name_after)
+        st.write("Score After Preprocessing:", round(score_after,4))
 
     except Exception as e:
 
@@ -183,7 +206,23 @@ if uploaded_file:
 
 
     # -----------------------------
-    # GENERATE REPORT + TELEGRAM ALERT
+    # PERFORMANCE COMPARISON
+    # -----------------------------
+
+    try:
+
+        improvement = score_after - score_before
+
+        st.subheader("Model Improvement After Preprocessing")
+
+        st.write("Performance Improvement:", round(improvement,4))
+
+    except:
+        pass
+
+
+    # -----------------------------
+    # REPORT + ALERT
     # -----------------------------
 
     report_file = generate_report(df, report, score, tips, outs, ml_task)
